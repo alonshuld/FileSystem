@@ -32,7 +32,7 @@ public:
 		int file_size;
 	};
 	typedef std::vector<struct dir_list_entry> dir_list;
-
+	
 	/**
 	 * format method
 	 * This function discards the current content in the blockdevice and
@@ -80,6 +80,9 @@ public:
 	dir_list list_dir(std::string path_str);
 
 private:
+
+	dir_list _dir;
+	int _sizeOfDir;
 
 	/**
 	 * This struct represents the first bytes of a myfs filesystem.

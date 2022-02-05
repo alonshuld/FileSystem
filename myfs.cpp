@@ -17,6 +17,7 @@ MyFs::MyFs(BlockDeviceSimulator *blkdevsim_):blkdevsim(blkdevsim_) {
 		format();
 		std::cout << "Finished!" << std::endl;
 	}
+	this->_sizeOfDir = sizeof(header);
 }
 
 void MyFs::format() {
@@ -31,12 +32,33 @@ void MyFs::format() {
 }
 
 void MyFs::create_file(std::string path_str, bool directory) {
-	throw std::runtime_error("not implemented");
+	if(directory || path_str.length() > 10)
+		throw std::runtime_error("not implemented");
+	dir_list_entry new_file;
+	new_file.name = path_str;
+	new_file.is_dir = directory;
+	new_file.file_size = path_str.size();
+	this->_sizeOfDir += new_file.file_size;
 }
 
 std::string MyFs::get_content(std::string path_str) {
+	char* ans = NULL;
 	throw std::runtime_error("not implemented");
-	return "";
+	int addr = sizeof(myfs_header) + 1;
+	for(int i = 0; i < this->_dir.size(); i++)
+	{
+		if(this->_dir[i].name == path_str)
+		{
+			this->blkdevsim->read(addr, this->_dir[i].file_size - this->_dir[i].name.size(), ans);
+			break;
+		}
+		else
+			addr += this->_dir[i].file_size;
+	}
+	if(ans == NULL)
+		return "Error: File not found";
+	else
+		return std::string(ans);
 }
 
 void MyFs::set_content(std::string path_str, std::string content) {
@@ -44,8 +66,6 @@ void MyFs::set_content(std::string path_str, std::string content) {
 }
 
 MyFs::dir_list MyFs::list_dir(std::string path_str) {
-	dir_list ans;
-	
-	return ans;
+	return this->_dir;
 }
 
