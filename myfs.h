@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include "blkdev.h"
 
+#define TOTAL_FILE_SIZE 1024
+#define FILE_NAME_SIZE 10
+
 class MyFs {
 public:
 	MyFs(BlockDeviceSimulator *blkdevsim_);

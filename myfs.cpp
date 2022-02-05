@@ -15,9 +15,9 @@ MyFs::MyFs(BlockDeviceSimulator *blkdevsim_):blkdevsim(blkdevsim_) {
 		std::cout << "Did not find myfs instance on blkdev" << std::endl;
 		std::cout << "Creating..." << std::endl;
 		format();
-		std::cout << "Finished!" << std::endl;
+		std::cout << "Finished!" << std::endl;	
+		this->_sizeOfDir = sizeof(myfs_header);
 	}
-	this->_sizeOfDir = sizeof(header);
 }
 
 void MyFs::format() {
@@ -27,45 +27,66 @@ void MyFs::format() {
 	strncpy(header.magic, MYFS_MAGIC, sizeof(header.magic));
 	header.version = CURR_VERSION;
 	blkdevsim->write(0, sizeof(header), (const char*)&header);
-
-	// TODO: put your format code here
 }
 
 void MyFs::create_file(std::string path_str, bool directory) {
-	if(directory || path_str.length() > 10)
+	if(directory)
 		throw std::runtime_error("not implemented");
+	if(path_str.length() > FILE_NAME_SIZE)
+		throw std::runtime_error("File name bigger than 10 chars");
+	if(this->_sizeOfDir + TOTAL_FILE_SIZE > 1024 * 1024)
+		throw std::runtime_error("Disk is full");
 	dir_list_entry new_file;
 	new_file.name = path_str;
 	new_file.is_dir = directory;
-	new_file.file_size = path_str.size();
-	this->_sizeOfDir += new_file.file_size;
+	new_file.file_size = 0;
+	this->blkdevsim->write(this->_sizeOfDir + 1, FILE_NAME_SIZE, path_str.c_str());
+	this->_sizeOfDir += TOTAL_FILE_SIZE;
+	this->_dir.insert(new_file); //TODO: FIX THIS PROBLEM
 }
 
 std::string MyFs::get_content(std::string path_str) {
+	if(path_str.size() > FILE_NAME_SIZE)
+		throw std::runtime_error("File name is bigger than 10");
 	char* ans = NULL;
-	throw std::runtime_error("not implemented");
-	int addr = sizeof(myfs_header) + 1;
+	int addr = sizeof(myfs_header) + FILE_NAME_SIZE + 1;
 	for(int i = 0; i < this->_dir.size(); i++)
 	{
 		if(this->_dir[i].name == path_str)
 		{
-			this->blkdevsim->read(addr, this->_dir[i].file_size - this->_dir[i].name.size(), ans);
+			this->blkdevsim->read(addr, this->_dir[i].file_size - FILE_NAME_SIZE, ans);
 			break;
 		}
 		else
-			addr += this->_dir[i].file_size;
+			addr += TOTAL_FILE_SIZE;
 	}
 	if(ans == NULL)
-		return "Error: File not found";
+		throw std::runtime_error("File not found");
 	else
 		return std::string(ans);
 }
 
 void MyFs::set_content(std::string path_str, std::string content) {
-	throw std::runtime_error("not implemented");
+	if(path_str.size() > FILE_NAME_SIZE)
+		throw std::runtime_error("File name size must be 10 or less");
+	if(content.size() > TOTAL_FILE_SIZE - FILE_NAME_SIZE)
+		throw std::runtime_error("The contant of the file must be 1014 or less");
+	int addr = sizeof(myfs_header) + FILE_NAME_SIZE + 1;
+	for(int i = 0; i < this->_dir.size(); i++)
+	{
+		if(this->_dir[i].name == path_str)
+		{
+			this->blkdevsim->write(addr, TOTAL_FILE_SIZE - FILE_NAME_SIZE, content.c_str());
+			this->_dir[i].file_size = FILE_NAME_SIZE + content.size();
+		}
+		else
+			addr += TOTAL_FILE_SIZE;
+	}
 }
 
 MyFs::dir_list MyFs::list_dir(std::string path_str) {
+	if(path_str.size())
+		throw std::runtime_error("Not implemented");
 	return this->_dir;
 }
 
