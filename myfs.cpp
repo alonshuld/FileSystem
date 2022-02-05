@@ -45,7 +45,7 @@ void MyFs::set_content(std::string path_str, std::string content) {
 
 MyFs::dir_list MyFs::list_dir(std::string path_str) {
 	dir_list ans;
-	throw std::runtime_error("not implemented");
+	
 	return ans;
 }
 
