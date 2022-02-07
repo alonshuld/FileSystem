@@ -42,7 +42,7 @@ void MyFs::create_file(std::string path_str, bool directory) {
 	new_file.file_size = 0;
 	this->blkdevsim->write(this->_sizeOfDir + 1, FILE_NAME_SIZE, path_str.c_str());
 	this->_sizeOfDir += TOTAL_FILE_SIZE;
-	this->_dir.insert(new_file); //TODO: FIX THIS PROBLEM
+	this->_dir.push_back(new_file); //TODO: FIX THIS PROBLEM //fixed?
 }
 
 std::string MyFs::get_content(std::string path_str) {
