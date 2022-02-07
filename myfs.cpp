@@ -83,7 +83,7 @@ void MyFs::set_content(std::string path_str, std::string content) {
 	{
 		if(this->_dir[i].name == path_str)
 		{
-			this->blkdevsim->write(addr, TOTAL_FILE_SIZE - FILE_NAME_SIZE, NULL);
+			//->blkdevsim->write(addr, TOTAL_FILE_SIZE - FILE_NAME_SIZE, NULL); //TODO: somehow i need to clean all the file before edit
 			this->blkdevsim->write(addr, content.size(), content.c_str());
 			this->_dir[i].file_size = FILE_NAME_SIZE + content.size();
 			return;
