@@ -8,6 +8,7 @@
 
 #define TOTAL_FILE_SIZE 1024
 #define FILE_NAME_SIZE 10
+#define FILE_CONTANT_SIZE TOTAL_FILE_SIZE - FILE_NAME_SIZE
 
 class MyFs {
 public:

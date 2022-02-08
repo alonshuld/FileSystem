@@ -51,14 +51,13 @@ void MyFs::create_file(std::string path_str, bool directory) {
 std::string MyFs::get_content(std::string path_str) {
 	if(path_str.size() > FILE_NAME_SIZE)
 		throw std::runtime_error("File name is bigger than 9");
-	char* ans = NULL;
+	char* ans = new char[FILE_CONTANT_SIZE];
 	int addr = sizeof(myfs_header) + FILE_NAME_SIZE + 1;
 	for(int i = 0; i < int(this->_dir.size()); i++)
 	{
 		if(this->_dir[i].name == path_str)
 		{
-			this->blkdevsim->read(addr, this->_dir[i].file_size - FILE_NAME_SIZE + 1, ans);
-			std::cout << "test" << std::endl;
+			this->blkdevsim->read(addr, this->_dir[i].file_size - FILE_NAME_SIZE -1 , ans);
 			break;
 		}
 		else
@@ -69,6 +68,7 @@ std::string MyFs::get_content(std::string path_str) {
 	else
 	{
 		std::string ansString(ans);
+		delete[] ans;
 		return ansString;
 	}
 }
@@ -76,7 +76,7 @@ std::string MyFs::get_content(std::string path_str) {
 void MyFs::set_content(std::string path_str, std::string content) {
 	if(path_str.size() > FILE_NAME_SIZE)
 		throw std::runtime_error("File name size must be 10 or less");
-	if(content.size() > TOTAL_FILE_SIZE - FILE_NAME_SIZE)
+	if(content.size() >= FILE_CONTANT_SIZE)
 		throw std::runtime_error("The contant of the file must be 1014 or less");
 	int addr = sizeof(myfs_header) + FILE_NAME_SIZE + 1;
 	for(int i = 0; i < int(this->_dir.size()); i++)
@@ -85,7 +85,7 @@ void MyFs::set_content(std::string path_str, std::string content) {
 		{
 			//->blkdevsim->write(addr, TOTAL_FILE_SIZE - FILE_NAME_SIZE, NULL); //TODO: somehow i need to clean all the file before edit
 			this->blkdevsim->write(addr, content.size(), content.c_str());
-			this->_dir[i].file_size = FILE_NAME_SIZE + content.size();
+			this->_dir[i].file_size = sizeof(myfs_header) + FILE_NAME_SIZE + content.size();
 			return;
 		}
 		else
