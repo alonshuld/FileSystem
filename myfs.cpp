@@ -9,14 +9,37 @@ const char *MyFs::MYFS_MAGIC = "MYFS";
 MyFs::MyFs(BlockDeviceSimulator *blkdevsim_):blkdevsim(blkdevsim_) {
 	struct myfs_header header;
 	blkdevsim->read(0, sizeof(header), (char *)&header);
-
+	this->_sizeOfDir = sizeof(myfs_header);
 	if (strncmp(header.magic, MYFS_MAGIC, sizeof(header.magic)) != 0 ||
 	    (header.version != CURR_VERSION)) {
 		std::cout << "Did not find myfs instance on blkdev" << std::endl;
 		std::cout << "Creating..." << std::endl;
 		format();
-		std::cout << "Finished!" << std::endl;	
-		this->_sizeOfDir = sizeof(myfs_header);
+		std::cout << "Finished!" << std::endl;
+	}
+	else
+	{
+		//TODO: run on all the file and load it to the vector
+		int addr = sizeof(myfs_header) + 1;
+		char* name_of_file = new char[FILE_NAME_SIZE];
+		char* contant_of_file = new char[FILE_CONTANT_SIZE];
+		dir_list_entry file;
+		while(addr < 1024 * 1024)
+		{
+			this->blkdevsim->read(addr, FILE_NAME_SIZE, name_of_file);
+			if(std::string(name_of_file).size() == 0)
+				break;
+			addr += FILE_NAME_SIZE;
+			this->blkdevsim->read(addr, FILE_CONTANT_SIZE, contant_of_file);
+			file.file_size = sizeof(myfs_header) + FILE_NAME_SIZE + std::string(contant_of_file).size();
+			file.is_dir = false;
+			file.name = std::string(name_of_file);
+			this->_dir.push_back(file);
+			this->_sizeOfDir += TOTAL_FILE_SIZE;
+			addr += FILE_CONTANT_SIZE;
+		}
+		delete[] name_of_file;
+		delete[] contant_of_file;
 	}
 }
 
